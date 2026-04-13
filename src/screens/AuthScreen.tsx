@@ -122,7 +122,7 @@ export default function AuthScreen() {
     }
   };
 
-  // Apple Sign-In (Native)
+  // Apple Sign-In (Native) - 修復版
   const handleAppleSignIn = async () => {
     if (!appleAuth) {
       Alert.alert('錯誤', 'Apple 登入未安裝');
@@ -142,9 +142,9 @@ export default function AuthScreen() {
         throw new Error('Apple Sign-In failed - no identity token');
       }
 
-      // Create Apple credential
-      const appleCredential = OAuthProvider.credentialFromJSON({
-        providerId: 'apple.com',
+      // 🔥 修復：正確創建 Apple credential
+      const appleProvider = new OAuthProvider('apple.com');
+      const appleCredential = appleProvider.credential({
         idToken: identityToken,
         rawNonce: nonce,
       });
