@@ -7,7 +7,7 @@
     "production": {
       "autoIncrement": true,
       "ios": {
-        "image": "macos-sequoia-15.5-xcode-26.0"
+        "image": "macos-sonoma-14.5-xcode-15.4"
       },
       "env": {
         "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
