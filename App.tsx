@@ -2,7 +2,6 @@ import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { enableScreens } from 'react-native-screens';
 
 import { AuthProvider } from './src/contexts/AuthContext';
 import { WalletProvider } from './src/contexts/WalletContext';
@@ -20,8 +19,9 @@ import IdVerificationScreen from './src/screens/IdVerificationScreen';
 import RiskAcknowledgmentScreen from './src/screens/RiskAcknowledgmentScreen';
 import AuthScreen from './src/screens/AuthScreen';
 
-// 🚨 暫時禁用 react-native-screens 測試是否解決閃退
-enableScreens(false);
+// 🧪 隔離測試：暫時移除 enableScreens(false) 睇吓係咪真係 screens 問題
+// 如果冇閃退 = "main" entry 係真正嘅解決方法
+// 如果閃退 = react-native-screens 係問題根源
 
 const Stack = createNativeStackNavigator();
 
