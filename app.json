@@ -24,6 +24,9 @@
         "NSLocationAlwaysUsageDescription": "開啟 Online 模式時，需要背景位置來推送附近新任務",
         "NSCameraUsageDescription": "即做需要相機權限來拍攝身份證和任務圖片",
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "entitlements": {
+        "com.apple.developer.applesignin": ["Default"]
       }
     },
     "android": {
