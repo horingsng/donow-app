@@ -4,6 +4,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { auth } from '../services/firebase';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native';
+import { useAuth } from '../contexts/AuthContext';
+import LoadingScreen from '../components/LoadingScreen';
 
 export default function AuthScreen() {
   const [email, setEmail] = useState('');
@@ -11,6 +13,17 @@ export default function AuthScreen() {
   const [isRegistering, setIsRegistering] = useState(false);
   const [loading, setLoading] = useState(false);
   const navigation = useNavigation();
+  const { user, loading: authLoading } = useAuth();
+
+  // 如果已經登入，直接跳轉到首頁
+  if (authLoading) {
+    return <LoadingScreen message="檢查登入狀態..." />;
+  }
+
+  if (user) {
+    navigation.navigate('Home' as never);
+    return null;
+  }
 
   const handleAuth = async () => {
     setLoading(true);

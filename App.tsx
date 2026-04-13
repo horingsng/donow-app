@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AuthProvider } from './src/contexts/AuthContext';
+import { WalletProvider } from './src/contexts/WalletContext';
 import ErrorBoundary from './src/components/ErrorBoundary';
 
 import HomeScreen from './src/screens/HomeScreen';
@@ -24,23 +25,25 @@ export default function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
-        <SafeAreaProvider>
-          <NavigationContainer>
-            <Stack.Navigator initialRouteName="Auth">
-              <Stack.Screen name="Auth" component={AuthScreen} options={{ headerShown: false }} />
-              <Stack.Screen name="Home" component={HomeScreen} options={{ title: '即做' }} />
-              <Stack.Screen name="TaskDetail" component={TaskDetailScreen} options={{ title: '任務詳情' }} />
-              <Stack.Screen name="CreateTask" component={CreateTaskScreen} options={{ title: '發布任務' }} />
-              <Stack.Screen name="ChatList" component={ChatListScreen} options={{ title: '聊天' }} />
-              <Stack.Screen name="Chat" component={ChatScreen} options={{ title: '聊天' }} />
-              <Stack.Screen name="Wallet" component={WalletScreen} options={{ title: '錢包' }} />
-              <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: '我的' }} />
-              <Stack.Screen name="MyTasks" component={MyTasksScreen} options={{ title: '我的任務' }} />
-              <Stack.Screen name="IdVerification" component={IdVerificationScreen} options={{ title: '身份驗證' }} />
-              <Stack.Screen name="RiskAcknowledgment" component={RiskAcknowledgmentScreen} options={{ title: '風險確認' }} />
-            </Stack.Navigator>
-          </NavigationContainer>
-        </SafeAreaProvider>
+        <WalletProvider>
+          <SafeAreaProvider>
+            <NavigationContainer>
+              <Stack.Navigator initialRouteName="Auth">
+                <Stack.Screen name="Auth" component={AuthScreen} options={{ headerShown: false }} />
+                <Stack.Screen name="Home" component={HomeScreen} options={{ title: '即做' }} />
+                <Stack.Screen name="TaskDetail" component={TaskDetailScreen} options={{ title: '任務詳情' }} />
+                <Stack.Screen name="CreateTask" component={CreateTaskScreen} options={{ title: '發布任務' }} />
+                <Stack.Screen name="ChatList" component={ChatListScreen} options={{ title: '聊天' }} />
+                <Stack.Screen name="Chat" component={ChatScreen} options={{ title: '聊天' }} />
+                <Stack.Screen name="Wallet" component={WalletScreen} options={{ title: '錢包' }} />
+                <Stack.Screen name="Profile" component={ProfileScreen} options={{ title: '我的' }} />
+                <Stack.Screen name="MyTasks" component={MyTasksScreen} options={{ title: '我的任務' }} />
+                <Stack.Screen name="IdVerification" component={IdVerificationScreen} options={{ title: '身份驗證' }} />
+                <Stack.Screen name="RiskAcknowledgment" component={RiskAcknowledgmentScreen} options={{ title: '風險確認' }} />
+              </Stack.Navigator>
+            </NavigationContainer>
+          </SafeAreaProvider>
+        </WalletProvider>
       </AuthProvider>
     </ErrorBoundary>
   );
