@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "即做",
+    "slug": "donow",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "userInterfaceStyle": "light",
+    "jsEngine": "jsc",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.donow.app",
+      "buildNumber": "1.0.0",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "即做需要你的位置來顯示附近的任務",
+        "NSLocationAlwaysUsageDescription": "開啟 Online 模式時，需要背景位置來推送附近新任務",
+        "NSCameraUsageDescription": "即做需要相機權限來拍攝身份證和任務圖片",
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.donow.app",
+      "versionCode": 1
+    },
+    "plugins": [],
+    "extra": {
+      "eas": {
+        "projectId": "b769a0a5-5e60-48df-a889-6e8ad3fdbf2d"
+      }
+    },
+    "owner": "horingsng",
+    "experiments": {
+      "newArchitecture": false
+    }
+  }
+}

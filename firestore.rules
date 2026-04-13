@@ -1,0 +1,145 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ========== 用戶資料規則 ==========
+    match /users/{userId} {
+      // 基本資料：自己可讀寫，其他人只能讀取公開欄位
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId 
+        && !('walletAvailable' in request.resource.data)
+        && !('walletHeld' in request.resource.data)
+        && !('walletWithdrawable' in request.resource.data);
+      
+      // Wallet 餘額：只有 System/Admin 可修改
+      allow update: if request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // ========== 身份證驗證資料（高度敏感）==========
+    match /id_verifications/{verificationId} {
+      // 只有本人同 Admin 可讀取
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.uid || 
+        request.auth.token.admin == true
+      );
+      // 只有本人可創建
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
+      // 只有 Admin 可更新驗證狀態
+      allow update: if request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // ========== 任務資料 ==========
+    match /tasks/{taskId} {
+      // 任務列表：所有人可讀取，但隱藏敏感資料
+      allow read: if request.auth != null;
+      
+      // 創建任務：已驗證用戶可創建
+      allow create: if request.auth != null 
+        && request.auth.uid == request.resource.data.posterUid
+        && request.auth.token.verified == true;
+      
+      // 更新任務：只有發單者可修改（接單前），或系統更新狀態
+      allow update: if request.auth != null && (
+        (request.auth.uid == resource.data.posterUid && resource.data.status == 'open') ||
+        request.auth.token.admin == true ||
+        request.auth.token.system == true
+      );
+    }
+    
+    // ========== 聊天室 ==========
+    match /chats/{chatId} {
+      // 只有參與者可讀取
+      allow read: if request.auth != null && (
+        request.auth.uid == resource.data.posterUid ||
+        request.auth.uid == resource.data.workerUid
+      );
+      // 只有系統可創建（接單時自動創建）
+      allow create: if request.auth != null && request.auth.token.system == true;
+      allow update: if request.auth != null && (
+        request.auth.uid == resource.data.posterUid ||
+        request.auth.uid == resource.data.workerUid
+      );
+    }
+    
+    // ========== 聊天訊息 ==========
+    match /chat_messages/{messageId} {
+      // 只有聊天室參與者可讀取
+      allow read: if request.auth != null && (
+        request.auth.uid in get(/databases/$(database)/documents/chats/$(resource.data.chatId)).data.participants
+      );
+      // 只有參與者可發送訊息
+      allow create: if request.auth != null && (
+        request.auth.uid == request.resource.data.senderUid &&
+        request.auth.uid in get(/databases/$(database)/documents/chats/$(request.resource.data.chatId)).data.participants
+      );
+    }
+    
+    // ========== Wallet 交易（嚴格保護）==========
+    match /wallet_transactions/{transactionId} {
+      // 只有自己可讀取自己嘅交易
+      allow read: if request.auth != null && request.auth.uid == resource.data.uid;
+      // 只有 System/Admin 可創建交易記錄
+      allow create: if request.auth != null && (
+        request.auth.token.system == true ||
+        request.auth.token.admin == true
+      );
+      allow update: if request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // ========== 充值記錄 ==========
+    match /topups/{topupId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.uid;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
+      allow update: if request.auth != null && (
+        request.auth.token.system == true ||
+        request.auth.token.admin == true
+      );
+    }
+    
+    // ========== 提款申請 ==========
+    match /withdrawals/{withdrawId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.uid;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.uid;
+      allow update: if request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // ========== 評分 ==========
+    match /reviews/{reviewId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == request.resource.data.fromUid;
+    }
+    
+    // ========== 舉報 ==========
+    match /reports/{reportId} {
+      allow read: if request.auth != null && request.auth.token.admin == true;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // ========== Admin 設定（只有 Admin 可讀寫）==========
+    match /admin/{docId} {
+      allow read, write: if request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // ========== 同意書版本（公開可讀）==========
+    match /consent_terms/{docId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // ========== 用戶位置（附近搜索用）==========
+    match /user_locations/{userId} {
+      // 自己可讀寫自己嘅位置
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      // Admin 可讀取所有位置（用於推送）
+      allow read: if request.auth != null && request.auth.token.admin == true;
+    }
+    
+    // ========== 通知記錄 ==========
+    match /notification_logs/{logId} {
+      allow read: if request.auth != null && request.auth.uid == resource.data.uid;
+      allow create: if request.auth != null && request.auth.token.system == true;
+    }
+  }
+}

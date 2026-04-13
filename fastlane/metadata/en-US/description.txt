@@ -1,0 +1,23 @@
+DoNow is a local task/errand platform for Hong Kong. Post tasks you need help with, or earn extra income by helping others.
+
+Key Features:
+- Post Tasks - Need help with something? Post a task and find someone to help!
+- Accept Tasks - Want to earn extra money? Browse available tasks!
+- Instant Messaging - Built-in chat for easy communication
+- Wallet System - Secure top-up and withdrawal (Stripe encrypted payments)
+- ID Verification - HKID verification for safety
+- Location Tracking - Find nearby tasks
+
+Highlights:
+- For Hong Kong residents aged 16+
+- All data stored in Hong Kong (PDPO compliant)
+- Platform fee: 10% from poster, 10% from worker
+- Map location support
+
+Perfect for:
+- Errands, document delivery, shopping
+- Queueing, waiting in line
+- Simple household tasks, moving
+- Anything you need help with
+
+Download DoNow now!

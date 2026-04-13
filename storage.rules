@@ -1,0 +1,65 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // ========== 用戶頭像 ==========
+    match /avatars/{userId}/{allPaths=**} {
+      // 所有人可讀取頭像
+      allow read: if true;
+      // 只有本人可上傳自己頭像
+      allow write: if request.auth != null 
+        && request.auth.uid == userId
+        && request.resource.size < 5 * 1024 * 1024  // 5MB limit
+        && request.resource.contentType.matches('image/.*');
+    }
+    
+    // ========== 身份證圖片（高度敏感）==========
+    match /id_verifications/{userId}/{allPaths=**} {
+      // 只有本人同 Admin 可讀取
+      allow read: if request.auth != null && (
+        request.auth.uid == userId ||
+        request.auth.token.admin == true
+      );
+      // 只有本人可上傳
+      allow write: if request.auth != null 
+        && request.auth.uid == userId
+        && request.resource.size < 10 * 1024 * 1024  // 10MB limit
+        && request.resource.contentType.matches('image/.*');
+    }
+    
+    // ========== 任務圖片 ==========
+    match /tasks/{taskId}/{allPaths=**} {
+      // 所有人可讀取任務圖片
+      allow read: if true;
+      // 只有任務發單者可上傳
+      allow write: if request.auth != null
+        && request.auth.token.verified == true
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+    
+    // ========== 收據圖片 ==========
+    match /receipts/{taskId}/{allPaths=**} {
+      // 只有任務相關人員可讀取
+      allow read: if request.auth != null 
+        && request.auth.uid in firestore.get(/databases/(default)/documents/tasks/$(taskId)).data.participants;
+      // 只有接單者可上傳收據
+      allow write: if request.auth != null
+        && request.auth.uid == firestore.get(/databases/(default)/documents/tasks/$(taskId)).data.workerUid
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+    
+    // ========== 聊天圖片 ==========
+    match /chat_images/{chatId}/{allPaths=**} {
+      // 只有聊天室參與者可讀取
+      allow read: if request.auth != null
+        && request.auth.uid in firestore.get(/databases/(default)/documents/chats/$(chatId)).data.participants;
+      // 只有參與者可上傳
+      allow write: if request.auth != null
+        && request.auth.uid in firestore.get(/databases/(default)/documents/chats/$(chatId)).data.participants
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+  }
+}

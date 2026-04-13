@@ -1,0 +1,4 @@
+# Appfile
+app_identifier("com.donow.app")
+apple_id("6762031690")
+team_id("U56982UU8Y")

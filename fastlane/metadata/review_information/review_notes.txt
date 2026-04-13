@@ -1,0 +1,23 @@
+即做 DoNow is a local task/errand platform for Hong Kong.
+
+Key features:
+- Users can post tasks/jobs they need help with
+- Workers can browse and accept tasks
+- In-app messaging for communication
+- Wallet system for payments (top-up and withdrawal)
+- ID verification for safety
+
+Age restriction: 16+
+Platform fee: 10% from both poster and worker
+
+Data protection: All data stored in Hong Kong (asia-east2) for PDPO compliance.
+
+Payment processing: Stripe (real money transactions)
+
+This app does not contain:
+- User-generated content without moderation
+- Gambling or contests
+- Medical/health advice
+- Financial services beyond payment processing
+
+Contact: horingsng@hotmail.com

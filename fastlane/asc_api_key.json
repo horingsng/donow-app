@@ -1,0 +1,7 @@
+{
+  "key_id": "FZW2GC85UR",
+  "issuer_id": "02d583ea-13f5-4fbc-8a0f-e816d6b0c573",
+  "key": "-----BEGIN EC PRIVATE KEY-----\nMIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkwdwIBAQQgM/tPdvc5UzxiTVnw\nCHU2mYsHZHoBZ8d69RUuWDq6u3GgCgYIKoZIzj0DAQehRANCAARkXtHNrCVbirqH\n+EjixsTsQsB1riQty8PzxViS7UrPWY2LRGH2Qgf5730+ew+RusmVw1+j2cENiBot\nfcP2jbE6\n-----END EC PRIVATE KEY-----",
+  "duration": 1200,
+  "in_house": false
+}

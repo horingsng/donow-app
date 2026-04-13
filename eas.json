@@ -1,0 +1,28 @@
+{
+  "cli": {
+    "version": ">= 5.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "production": {
+      "autoIncrement": true,
+      "ios": {
+        "image": "macos-sequoia-15.5-xcode-26.0"
+      },
+      "env": {
+        "NPM_CONFIG_LEGACY_PEER_DEPS": "true",
+        "CI": "false"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "6762031690",
+        "ascApiKeyPath": "./AuthKey_FZW2GC85UR.p8",
+        "ascApiKeyId": "FZW2GC85UR",
+        "ascApiKeyIssuerId": "02d583ea-13f5-4fbc-8a0f-e816d6b0c573"
+      }
+    }
+  }
+}

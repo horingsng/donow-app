@@ -1,0 +1,47 @@
+# Deliverfile
+# App Store Review Information
+
+# Skip binary upload (we already uploaded via EAS)
+skip_binary_upload(true)
+
+# Skip screenshot upload
+skip_screenshots(true)
+
+# Submit for review automatically
+submit_for_review(false)
+
+# Automatic release
+automatic_release(false)
+
+# Contact information for App Review
+app_review_information({
+  first_name: "Wing",
+  last_name: "Ho",
+  phone_number: "+852 56690629",
+  email_address: "horingsng@hotmail.com",
+  demo_user: "",
+  demo_password: "",
+  notes: "即做 DoNow is a local task/errand platform for Hong Kong.
+
+Key features:
+- Users can post tasks/jobs they need help with
+- Workers can browse and accept tasks
+- In-app messaging for communication
+- Wallet system for payments (top-up and withdrawal)
+- ID verification for safety
+
+Age restriction: 16+
+Platform fee: 10% from both poster and worker
+
+Data protection: All data stored in Hong Kong (asia-east2) for PDPO compliance.
+
+Payment processing: Stripe (real money transactions)
+
+This app does not contain:
+- User-generated content without moderation
+- Gambling or contests
+- Medical/health advice
+- Financial services beyond payment processing
+
+Contact: horingsng@hotmail.com"
+})
