@@ -8,6 +8,8 @@ import {
   Alert,
   ActivityIndicator,
   Image,
+  Modal,
+  TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -42,6 +44,109 @@ export default function TaskDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [accepting, setAccepting] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [showAddPurchaseModal, setShowAddPurchaseModal] = useState(false);
+  const [additionalPurchaseAmount, setAdditionalPurchaseAmount] = useState('');
+  const [addingPurchase, setAddingPurchase] = useState(false);
+
+  const handleAddPurchase = async () => {
+    if (!additionalPurchaseAmount.trim() || isNaN(parseInt(additionalPurchaseAmount))) {
+      Alert.alert('錯誤', '請輸入有效的金額');
+      return;
+    }
+    const amount = parseInt(additionalPurchaseAmount);
+    if (amount <= 0) {
+      Alert.alert('錯誤', '追加金額必須大於 0');
+      return;
+    }
+
+    if (!currentUser) {
+      Alert.alert('錯誤', '請先登入');
+      return;
+    }
+
+    setAddingPurchase(true);
+    try {
+      await runTransaction(db, async (transaction) => {
+        const userRef = doc(db, 'users', currentUser.uid);
+        const taskRef = doc(db, 'tasks', taskId);
+
+        const userSnap = await transaction.get(userRef);
+        const taskSnap = await transaction.get(taskRef);
+
+        if (!userSnap.exists()) throw new Error('用戶資料不存在');
+        if (!taskSnap.exists()) throw new Error('任務不存在');
+
+        const currentTaskData = taskSnap.data();
+        const currentUserData = userSnap.data();
+
+        const currentAvailableBalance = currentUserData?.walletAvailable || 0;
+        const currentEstimatedPurchaseAmount = currentTaskData?.estimatedPurchaseAmount || 0;
+        const currentPurchaseBudgetHeld = currentTaskData?.purchaseBudgetHeld || 0;
+
+        if (currentAvailableBalance < amount) {
+          throw new Error(`餘額不足。需要 $${amount}，但你只有 $${currentAvailableBalance}`);
+        }
+
+        // Update task document
+        transaction.update(taskRef, {
+          estimatedPurchaseAmount: currentEstimatedPurchaseAmount + amount,
+          purchaseBudgetHeld: currentPurchaseBudgetHeld + amount,
+        });
+
+        // Deduct from poster's wallet
+        transaction.update(userRef, {
+          walletAvailable: currentAvailableBalance - amount,
+          walletHeld: (currentUserData.walletHeld || 0) + amount,
+        });
+
+        // Record transaction
+        const transactionRef = doc(collection(db, 'wallet_transactions'));
+        transaction.set(transactionRef, {
+          transactionId: transactionRef.id,
+          uid: currentUser.uid,
+          taskId: taskId,
+          type: 'purchase_budget_add',
+          amount: amount,
+          direction: 'out',
+          status: 'completed',
+          title: '追加代付預算',
+          description: `任務：${currentTaskData?.title || ''}`,
+          createdAt: serverTimestamp(),
+        });
+
+        // Send chat message to worker
+        const chatQuery = collection(db, 'chats');
+        const chatSnap = await transaction.get(chatQuery.where('taskId', '==', taskId));
+        if (!chatSnap.empty) {
+          const chatDoc = chatSnap.docs[0];
+          const chatMessageRef = doc(collection(db, 'chat_messages'));
+          transaction.set(chatMessageRef, {
+            messageId: chatMessageRef.id,
+            chatId: chatDoc.id,
+            senderUid: 'system',
+            type: 'system',
+            text: `發單者已追加代付預算 $${amount}，現總預算為 $${currentEstimatedPurchaseAmount + amount}`,
+            createdAt: serverTimestamp(),
+          });
+          transaction.update(chatDoc.ref, {
+            lastMessage: `發單者已追加代付預算 $${amount}`,
+            lastMessageType: 'system',
+            lastSenderUid: 'system',
+            unreadCountWorker: (chatDoc.data().unreadCountWorker || 0) + 1,
+            updatedAt: serverTimestamp(),
+          });
+        }
+      });
+
+      Alert.alert('✅ 追加成功', `已成功追加 $${amount} 代付預算`);
+      setShowAddPurchaseModal(false);
+      setAdditionalPurchaseAmount('');
+    } catch (error: any) {
+      Alert.alert('❌ 追加失敗', error.message);
+    } finally {
+      setAddingPurchase(false);
+    }
+  };
 
   useEffect(() => {
     const user = auth.currentUser;
@@ -322,6 +427,13 @@ export default function TaskDetailScreen() {
             </TouchableOpacity>
           )}
 
+          {isPoster && task.purchaseRequired && (task.status === 'accepted' || task.status === 'in_progress') && (
+            <TouchableOpacity style={styles.addPurchaseButton} onPress={() => setShowAddPurchaseModal(true)}>
+              <Ionicons name="add-circle-outline" size={24} color="#6366f1" />
+              <Text style={styles.addPurchaseButtonText}>追加預付</Text>
+            </TouchableOpacity>
+          )}
+
           {(isWorker || isPoster) && task.status !== 'open' && task.status !== 'completed' && (
             <TouchableOpacity style={styles.chatButton} onPress={() => navigation.navigate('ChatList')}>
               <Ionicons name="chatbubble-ellipses" size={24} color="#6366f1" />
@@ -332,6 +444,45 @@ export default function TaskDetailScreen() {
 
         <View style={styles.bottomPadding} />
       </ScrollView>
+
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showAddPurchaseModal}
+        onRequestClose={() => setShowAddPurchaseModal(false)}
+      >
+        <View style={styles.centeredView}>
+          <View style={styles.modalView}>
+            <Text style={styles.modalTitle}>追加預付金額</Text>
+            <TextInput
+              style={styles.modalTextInput}
+              placeholder="輸入追加金額"
+              keyboardType="number-pad"
+              value={additionalPurchaseAmount}
+              onChangeText={setAdditionalPurchaseAmount}
+              autoFocus={true}
+            />
+            <View style={styles.modalButtonContainer}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.buttonCancel]}
+                onPress={() => {
+                  setShowAddPurchaseModal(false);
+                  setAdditionalPurchaseAmount('');
+                }}
+              >
+                <Text style={styles.modalButtonText}>取消</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.buttonConfirm]}
+                onPress={handleAddPurchase}
+                disabled={addingPurchase}
+              >
+                {addingPurchase ? <ActivityIndicator color="#fff" /> : <Text style={styles.modalButtonText}>確認追加</Text>}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -480,5 +631,84 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   chatButtonText: { color: '#6366f1', fontSize: 16, fontWeight: '600' },
+  addPurchaseButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#e0e7ff',
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 12,
+    borderWidth: 2,
+    borderColor: '#a5b4fc',
+    gap: 8,
+  },
+  addPurchaseButtonText: { color: '#6366f1', fontSize: 16, fontWeight: '600' },
   bottomPadding: { height: 32 },
+  centeredView: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
+  modalView: {
+    margin: 20,
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 35,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    width: '80%',
+  },
+  modalTitle: {
+    marginBottom: 15,
+    textAlign: 'center',
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#1f2937',
+  },
+  modalTextInput: {
+    width: '100%',
+    height: 50,
+    borderColor: '#e5e7eb',
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 15,
+    marginBottom: 20,
+    fontSize: 18,
+    color: '#1f2937',
+    textAlign: 'center',
+  },
+  modalButtonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  modalButton: {
+    borderRadius: 12,
+    padding: 15,
+    elevation: 2,
+    flex: 1,
+    marginHorizontal: 5,
+    alignItems: 'center',
+  },
+  buttonCancel: {
+    backgroundColor: '#ef4444',
+  },
+  buttonConfirm: {
+    backgroundColor: '#6366f1',
+  },
+  modalButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    textAlign: 'center',
+    fontSize: 16,
+  },
 });

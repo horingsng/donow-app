@@ -334,6 +334,8 @@ export default function CreateTaskScreen() {
                   <Text style={styles.currency}>$</Text>
                   <TextInput style={styles.rewardTextInput} placeholder="輸入預計代付金額" value={estimatedPurchaseAmount} onChangeText={setEstimatedPurchaseAmount} keyboardType="number-pad" />
                 </View>
+                <Text style={{ fontSize: 13, color: '#f59e0b', marginTop: 8 }}>建議預留多10-20%作緩衝，實際金額可能會有差異</Text>
+                <Text style={{ fontSize: 13, color: '#6b7280', marginTop: 4 }}>如代付金額不足，接單者可要求追加</Text>
               </View>
             )}
           </View>
